@@ -1,0 +1,8 @@
+---
+exclude_paths:
+  - .claude/
+  - .github/
+  - molecule/
+
+skip_list:
+  - yaml[truthy]  # we use bare true/false for booleans

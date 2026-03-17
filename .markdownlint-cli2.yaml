@@ -1,0 +1,8 @@
+---
+globs:
+  - "**/*.md"
+ignores:
+  - .claude/**
+  - .github/**
+  - .ansible/**
+  - node_modules/**

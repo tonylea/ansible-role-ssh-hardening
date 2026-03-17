@@ -1,0 +1,49 @@
+---
+version: "0.2"
+
+ignorePaths:
+  - .claude/
+  - .github/
+  - .git/
+  - .ansible/
+  - node_modules/
+  - molecule/
+  - "*.j2"
+
+language: en
+
+words:
+  # Ansible
+  - ansible
+  - builtin
+  - systemd
+  - blockinfile
+  - lineinfile
+  - bookworm
+  - bullseye
+
+  # SSH / OpenSSH
+  - sshd
+  - openssh
+  - sftp
+  - pubkey
+  - chacha
+  - poly1305
+  - hmac
+  - umac
+  - ternary
+
+  # Crypto algorithms
+  - diffie
+  - ecdsa
+  - ed25519
+  - hellman
+
+  # Project
+  - hardening
+  - homelab
+  - tonylea
+  - motd
+  - keepalive
+  - keepalives
+  - trixie
