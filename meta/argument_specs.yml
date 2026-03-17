@@ -1,0 +1,181 @@
+---
+argument_specs:
+  main:
+    short_description: Harden the SSH daemon configuration
+    description:
+      - Deploys a hardened sshd_config using a managed template.
+      - Enforces key-based authentication, strong cryptography, and restrictive access controls.
+    options:
+      ssh_hardening_port:
+        type: int
+        default: 22
+        description: Port the SSH daemon listens on.
+
+      ssh_hardening_address_family:
+        type: str
+        default: any
+        choices:
+          - any
+          - inet
+          - inet6
+        description: Address family to use (any, inet for IPv4 only, inet6 for IPv6 only).
+
+      ssh_hardening_listen_addresses:
+        type: list
+        elements: str
+        default:
+          - 0.0.0.0
+          - "::"
+        description: List of addresses the SSH daemon listens on.
+
+      ssh_hardening_permit_root_login:
+        type: str
+        default: "no"
+        choices:
+          - "yes"
+          - "no"
+          - prohibit-password
+          - forced-commands-only
+        description: Controls whether root can log in via SSH.
+
+      ssh_hardening_pubkey_authentication:
+        type: bool
+        default: true
+        description: Enable public key authentication.
+
+      ssh_hardening_password_authentication:
+        type: bool
+        default: false
+        description: Enable password authentication. Should remain false on hardened systems.
+
+      ssh_hardening_permit_empty_passwords:
+        type: bool
+        default: false
+        description: Allow accounts with empty passwords to log in.
+
+      ssh_hardening_challenge_response_authentication:
+        type: bool
+        default: false
+        description: >
+          Enable keyboard-interactive (challenge-response) authentication.
+          Maps to ChallengeResponseAuthentication on Debian 11 and
+          KbdInteractiveAuthentication on Debian 12+.
+
+      ssh_hardening_use_pam:
+        type: bool
+        default: true
+        description: Enable PAM authentication and session processing.
+
+      ssh_hardening_allowed_users:
+        type: list
+        elements: str
+        default: []
+        description: Whitelist of usernames permitted to log in. Empty list means no restriction.
+
+      ssh_hardening_allowed_groups:
+        type: list
+        elements: str
+        default: []
+        description: Whitelist of groups permitted to log in. Empty list means no restriction.
+
+      ssh_hardening_denied_users:
+        type: list
+        elements: str
+        default: []
+        description: Blacklist of usernames denied login.
+
+      ssh_hardening_denied_groups:
+        type: list
+        elements: str
+        default: []
+        description: Blacklist of groups denied login.
+
+      ssh_hardening_login_grace_time:
+        type: int
+        default: 60
+        description: Seconds the server waits for a successful login before disconnecting.
+
+      ssh_hardening_max_auth_tries:
+        type: int
+        default: 4
+        description: Maximum authentication attempts permitted per connection.
+
+      ssh_hardening_max_sessions:
+        type: int
+        default: 10
+        description: Maximum concurrent open sessions per network connection.
+
+      ssh_hardening_client_alive_interval:
+        type: int
+        default: 300
+        description: Seconds between keep-alive messages sent to the client.
+
+      ssh_hardening_client_alive_count_max:
+        type: int
+        default: 3
+        description: Number of unanswered keep-alive messages before the client is disconnected.
+
+      ssh_hardening_allow_agent_forwarding:
+        type: bool
+        default: false
+        description: Allow SSH agent forwarding.
+
+      ssh_hardening_allow_tcp_forwarding:
+        type: bool
+        default: false
+        description: Allow TCP forwarding. Set to true only when tunnelling is required.
+
+      ssh_hardening_x11_forwarding:
+        type: bool
+        default: false
+        description: Allow X11 graphical forwarding.
+
+      ssh_hardening_log_level:
+        type: str
+        default: VERBOSE
+        choices:
+          - QUIET
+          - FATAL
+          - ERROR
+          - INFO
+          - VERBOSE
+          - DEBUG
+          - DEBUG1
+          - DEBUG2
+          - DEBUG3
+        description: Verbosity of sshd logging. VERBOSE logs key fingerprints on login.
+
+      ssh_hardening_print_motd:
+        type: bool
+        default: false
+        description: Print /etc/motd on interactive login.
+
+      ssh_hardening_use_dns:
+        type: bool
+        default: false
+        description: Resolve client hostnames. Disable to avoid login delays on systems without reliable DNS.
+
+      ssh_hardening_banner:
+        type: str
+        default: "none"
+        description: Path to a banner file displayed before authentication, or "none" to disable.
+
+      ssh_hardening_ciphers:
+        type: list
+        elements: str
+        description: Ordered list of allowed symmetric ciphers.
+
+      ssh_hardening_kex_algorithms:
+        type: list
+        elements: str
+        description: Ordered list of allowed key exchange algorithms.
+
+      ssh_hardening_macs:
+        type: list
+        elements: str
+        description: Ordered list of allowed message authentication codes.
+
+      ssh_hardening_host_key_algorithms:
+        type: list
+        elements: str
+        description: Ordered list of allowed host key algorithms.

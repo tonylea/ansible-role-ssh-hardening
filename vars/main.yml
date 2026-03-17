@@ -1,0 +1,21 @@
+---
+_ssh_hardening_config_path: /etc/ssh/sshd_config
+_ssh_hardening_supported_os_families:
+  - Debian
+
+_ssh_hardening_valid_root_login:
+  - "yes"
+  - "no"
+  - prohibit-password
+  - forced-commands-only
+
+_ssh_hardening_valid_log_levels:
+  - QUIET
+  - FATAL
+  - ERROR
+  - INFO
+  - VERBOSE
+  - DEBUG
+  - DEBUG1
+  - DEBUG2
+  - DEBUG3

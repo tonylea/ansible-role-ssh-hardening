@@ -1,0 +1,88 @@
+---
+- name: Assert supported operating system
+  ansible.builtin.assert:
+    that:
+      - ansible_os_family in _ssh_hardening_supported_os_families
+    fail_msg: >-
+      {{ ansible_os_family }} is not supported by this role.
+      Supported OS families: {{ _ssh_hardening_supported_os_families | join(', ') }}.
+    success_msg: "OS check passed: {{ ansible_os_family }}"
+
+- name: Assert ssh_hardening_port is in valid range
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_port | int == ssh_hardening_port
+      - ssh_hardening_port >= 1
+      - ssh_hardening_port <= 65535
+    fail_msg: "ssh_hardening_port must be an integer between 1 and 65535, got {{ ssh_hardening_port }}"
+
+- name: Assert ssh_hardening_permit_root_login is valid
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_permit_root_login in _ssh_hardening_valid_root_login
+    fail_msg: >-
+      ssh_hardening_permit_root_login must be one of
+      {{ _ssh_hardening_valid_root_login | join(', ') }},
+      got '{{ ssh_hardening_permit_root_login }}'.
+
+- name: Assert ssh_hardening_log_level is valid
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_log_level in _ssh_hardening_valid_log_levels
+    fail_msg: >-
+      ssh_hardening_log_level must be one of
+      {{ _ssh_hardening_valid_log_levels | join(', ') }},
+      got '{{ ssh_hardening_log_level }}'.
+
+- name: Assert boolean variables are booleans
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_pubkey_authentication | type_debug == 'bool'
+      - ssh_hardening_password_authentication | type_debug == 'bool'
+      - ssh_hardening_permit_empty_passwords | type_debug == 'bool'
+      - ssh_hardening_challenge_response_authentication | type_debug == 'bool'
+      - ssh_hardening_use_pam | type_debug == 'bool'
+      - ssh_hardening_allow_agent_forwarding | type_debug == 'bool'
+      - ssh_hardening_allow_tcp_forwarding | type_debug == 'bool'
+      - ssh_hardening_x11_forwarding | type_debug == 'bool'
+      - ssh_hardening_print_motd | type_debug == 'bool'
+      - ssh_hardening_use_dns | type_debug == 'bool'
+    fail_msg: >-
+      All boolean variables must be true or false (not strings).
+      Check that you are not quoting boolean values.
+
+- name: Assert ssh_hardening_max_auth_tries is positive
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_max_auth_tries >= 1
+    fail_msg: "ssh_hardening_max_auth_tries must be >= 1, got {{ ssh_hardening_max_auth_tries }}"
+
+- name: Assert ssh_hardening_max_sessions is positive
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_max_sessions >= 1
+    fail_msg: "ssh_hardening_max_sessions must be >= 1, got {{ ssh_hardening_max_sessions }}"
+
+- name: Assert ssh_hardening_login_grace_time is positive
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_login_grace_time >= 1
+    fail_msg: "ssh_hardening_login_grace_time must be >= 1, got {{ ssh_hardening_login_grace_time }}"
+
+- name: Assert ssh_hardening_client_alive settings are non-negative
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_client_alive_interval >= 0
+      - ssh_hardening_client_alive_count_max >= 0
+    fail_msg: >-
+      ssh_hardening_client_alive_interval ({{ ssh_hardening_client_alive_interval }}) and
+      ssh_hardening_client_alive_count_max ({{ ssh_hardening_client_alive_count_max }}) must be >= 0.
+
+- name: Assert crypto lists are not empty
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_ciphers | length > 0
+      - ssh_hardening_kex_algorithms | length > 0
+      - ssh_hardening_macs | length > 0
+      - ssh_hardening_host_key_algorithms | length > 0
+    fail_msg: "ssh_hardening_ciphers, ssh_hardening_kex_algorithms, ssh_hardening_macs, and ssh_hardening_host_key_algorithms must not be empty"

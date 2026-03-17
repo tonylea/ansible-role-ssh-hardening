@@ -1,0 +1,78 @@
+# {{ ansible_managed }}
+
+# Network
+Port {{ ssh_hardening_port }}
+AddressFamily {{ ssh_hardening_address_family }}
+{% for addr in ssh_hardening_listen_addresses %}
+ListenAddress {{ addr }}
+{% endfor %}
+
+# Host Keys
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+
+# Ciphers and Keying
+KexAlgorithms {{ ssh_hardening_kex_algorithms | join(',') }}
+HostKeyAlgorithms {{ ssh_hardening_host_key_algorithms | join(',') }}
+Ciphers {{ ssh_hardening_ciphers | join(',') }}
+MACs {{ ssh_hardening_macs | join(',') }}
+
+# Logging
+SyslogFacility AUTH
+LogLevel {{ ssh_hardening_log_level }}
+
+# Authentication
+LoginGraceTime {{ ssh_hardening_login_grace_time }}
+PermitRootLogin {{ ssh_hardening_permit_root_login }}
+StrictModes yes
+MaxAuthTries {{ ssh_hardening_max_auth_tries }}
+MaxSessions {{ ssh_hardening_max_sessions }}
+
+PubkeyAuthentication {{ ssh_hardening_pubkey_authentication | ternary('yes', 'no') }}
+AuthorizedKeysFile .ssh/authorized_keys
+
+PasswordAuthentication {{ ssh_hardening_password_authentication | ternary('yes', 'no') }}
+PermitEmptyPasswords {{ ssh_hardening_permit_empty_passwords | ternary('yes', 'no') }}
+
+# KbdInteractiveAuthentication replaces ChallengeResponseAuthentication in OpenSSH 9.0+
+{% if ansible_distribution == 'Debian' and ansible_distribution_major_version | int >= 12 %}
+KbdInteractiveAuthentication {{ ssh_hardening_challenge_response_authentication | ternary('yes', 'no') }}
+{% else %}
+ChallengeResponseAuthentication {{ ssh_hardening_challenge_response_authentication | ternary('yes', 'no') }}
+{% endif %}
+
+UsePAM {{ ssh_hardening_use_pam | ternary('yes', 'no') }}
+
+# Access control
+{% if ssh_hardening_allowed_users %}
+AllowUsers {{ ssh_hardening_allowed_users | join(' ') }}
+{% endif %}
+{% if ssh_hardening_allowed_groups %}
+AllowGroups {{ ssh_hardening_allowed_groups | join(' ') }}
+{% endif %}
+{% if ssh_hardening_denied_users %}
+DenyUsers {{ ssh_hardening_denied_users | join(' ') }}
+{% endif %}
+{% if ssh_hardening_denied_groups %}
+DenyGroups {{ ssh_hardening_denied_groups | join(' ') }}
+{% endif %}
+
+# Forwarding
+AllowAgentForwarding {{ ssh_hardening_allow_agent_forwarding | ternary('yes', 'no') }}
+AllowTcpForwarding {{ ssh_hardening_allow_tcp_forwarding | ternary('yes', 'no') }}
+X11Forwarding {{ ssh_hardening_x11_forwarding | ternary('yes', 'no') }}
+
+# Misc
+PrintMotd {{ ssh_hardening_print_motd | ternary('yes', 'no') }}
+UseDNS {{ ssh_hardening_use_dns | ternary('yes', 'no') }}
+Banner {{ ssh_hardening_banner }}
+
+# Keep-alive
+ClientAliveInterval {{ ssh_hardening_client_alive_interval }}
+ClientAliveCountMax {{ ssh_hardening_client_alive_count_max }}
+
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+
+# Subsystem
+Subsystem sftp {{ _ssh_hardening_sftp_subsystem }}

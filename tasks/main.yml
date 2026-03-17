@@ -1,72 +1,16 @@
 ---
-- name: Ensure SSH daemon password authentication is disabled
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?PasswordAuthentication"
-    line: "PasswordAuthentication {{ 'yes' if sshd_password_authentication else 'no' }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
+- name: Run pre-flight assertions
+  ansible.builtin.import_tasks: assert.yml
   tags:
-    - ssh
-    - ssh-hardening
+    - always
 
-- name: Ensure SSH daemon challenge response authentication is disabled
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?ChallengeResponseAuthentication"
-    line: "ChallengeResponseAuthentication {{ 'yes' if sshd_challenge_response_authentication else 'no' }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
   tags:
-    - ssh
-    - ssh-hardening
+    - always
 
-- name: Ensure SSH daemon root login is disabled
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?PermitRootLogin"
-    line: "PermitRootLogin {{ sshd_permit_root_login }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
-  tags:
-    - ssh
-    - ssh-hardening
-
-- name: Ensure SSH daemon public key authentication is enabled
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?PubkeyAuthentication"
-    line: "PubkeyAuthentication {{ 'yes' if sshd_pubkey_authentication else 'no' }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
-  tags:
-    - ssh
-    - ssh-hardening
-
-- name: Ensure SSH daemon does not permit empty passwords
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?PermitEmptyPasswords"
-    line: "PermitEmptyPasswords {{ 'yes' if sshd_permit_empty_passwords else 'no' }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
-  tags:
-    - ssh
-    - ssh-hardening
-
-- name: Ensure SSH daemon PAM is configured
-  ansible.builtin.lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "^#?UsePAM"
-    line: "UsePAM {{ 'yes' if sshd_use_pam else 'no' }}"
-    state: present
-    validate: /usr/sbin/sshd -t -f %s
-  notify: Restart sshd
+- name: Run OS-specific SSH hardening tasks
+  ansible.builtin.include_tasks: "{{ ansible_os_family }}.yml"
   tags:
     - ssh
     - ssh-hardening

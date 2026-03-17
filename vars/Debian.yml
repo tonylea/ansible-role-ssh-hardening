@@ -1,0 +1,3 @@
+---
+_ssh_hardening_sftp_subsystem: /usr/lib/openssh/sftp-server
+_ssh_hardening_service_name: ssh

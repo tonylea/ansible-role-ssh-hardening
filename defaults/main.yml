@@ -1,7 +1,68 @@
 ---
-sshd_password_authentication: false
-sshd_challenge_response_authentication: false
-sshd_permit_root_login: "no"
-sshd_pubkey_authentication: true
-sshd_permit_empty_passwords: false
-sshd_use_pam: true
+# Port and network
+ssh_hardening_port: 22
+ssh_hardening_address_family: any
+ssh_hardening_listen_addresses:
+  - 0.0.0.0
+  - "::"
+
+# Authentication
+ssh_hardening_permit_root_login: "no"
+ssh_hardening_pubkey_authentication: true
+ssh_hardening_password_authentication: false
+ssh_hardening_permit_empty_passwords: false
+ssh_hardening_challenge_response_authentication: false
+ssh_hardening_use_pam: true
+
+# Access control (empty lists mean no restriction)
+ssh_hardening_allowed_users: []
+ssh_hardening_allowed_groups: []
+ssh_hardening_denied_users: []
+ssh_hardening_denied_groups: []
+
+# Connection limits
+ssh_hardening_login_grace_time: 60
+ssh_hardening_max_auth_tries: 4
+ssh_hardening_max_sessions: 10
+ssh_hardening_client_alive_interval: 300
+ssh_hardening_client_alive_count_max: 3
+
+# Forwarding
+ssh_hardening_allow_agent_forwarding: false
+ssh_hardening_allow_tcp_forwarding: false
+ssh_hardening_x11_forwarding: false
+
+# Logging
+ssh_hardening_log_level: "VERBOSE"
+
+# Misc
+ssh_hardening_print_motd: false
+ssh_hardening_use_dns: false
+ssh_hardening_banner: "none"
+
+# Cryptography
+ssh_hardening_ciphers:
+  - chacha20-poly1305@openssh.com
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr
+
+ssh_hardening_kex_algorithms:
+  - curve25519-sha256
+  - curve25519-sha256@libssh.org
+  - diffie-hellman-group14-sha256
+  - diffie-hellman-group16-sha512
+  - diffie-hellman-group18-sha512
+
+ssh_hardening_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - umac-128-etm@openssh.com
+
+ssh_hardening_host_key_algorithms:
+  - ssh-ed25519
+  - ssh-ed25519-cert-v01@openssh.com
+  - rsa-sha2-512
+  - rsa-sha2-256

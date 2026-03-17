@@ -1,0 +1,14 @@
+---
+- name: Deploy hardened SSH daemon configuration
+  ansible.builtin.template:
+    src: sshd_config.j2
+    dest: "{{ _ssh_hardening_config_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+    validate: /usr/sbin/sshd -t -f %s
+    backup: true
+  notify: Reload sshd
+  tags:
+    - ssh
+    - ssh-hardening
