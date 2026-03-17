@@ -21,7 +21,7 @@ The role includes pre-flight assertion checks that validate every variable befor
 Install from GitHub with Ansible Galaxy:
 
 ```bash
-ansible-galaxy role install git+https://github.com/tonylea/ansible-role-ssh-hardening.git,main
+ansible-galaxy role install git+https://github.com/tonylea/ansible-role-ssh-hardening.git,v1.0.0
 ```
 
 Or add to your `requirements.yml`:
@@ -30,7 +30,7 @@ Or add to your `requirements.yml`:
 roles:
   - name: ansible-role-ssh-hardening
     src: https://github.com/tonylea/ansible-role-ssh-hardening.git
-    version: main
+    version: v1.0.0
 ```
 
 Then run:
