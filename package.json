@@ -1,0 +1,23 @@
+{
+  "name": "ansible-role-ssh-hardening",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "lint:ansible": "ansible-lint",
+    "lint:spell": "cspell \"**/*\"",
+    "lint:markdown": "markdownlint-cli2",
+    "lint": "npm run lint:ansible && npm run lint:spell && npm run lint:markdown",
+    "test": "molecule test && molecule test -s custom-vars",
+    "prepare": "husky",
+    "release": "commit-and-tag-version"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "commit-and-tag-version": "^12.6.1",
+    "cspell": "^9.7.0",
+    "husky": "^9.1.7",
+    "markdownlint-cli2": "^0.21.0"
+  }
+}
