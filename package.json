@@ -1,6 +1,6 @@
 {
   "name": "ansible-role-ssh-hardening",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "lint:ansible": "ansible-lint",
