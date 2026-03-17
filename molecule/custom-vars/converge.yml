@@ -1,0 +1,20 @@
+---
+- name: Converge with custom variables
+  hosts: all
+  become: true
+  roles:
+    - role: tonylea.ssh_hardening
+      vars:
+        ssh_hardening_port: 2222
+        ssh_hardening_permit_root_login: prohibit-password
+        ssh_hardening_max_auth_tries: 2
+        ssh_hardening_max_sessions: 5
+        ssh_hardening_log_level: INFO
+        ssh_hardening_client_alive_interval: 600
+        ssh_hardening_client_alive_count_max: 2
+        ssh_hardening_x11_forwarding: true
+        ssh_hardening_allowed_users:
+          - testuser
+        ssh_hardening_address_family: inet
+        ssh_hardening_listen_addresses:
+          - 0.0.0.0

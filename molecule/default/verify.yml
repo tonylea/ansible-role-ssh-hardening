@@ -1,0 +1,150 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    # --- Config file checks ---
+    - name: Read sshd_config
+      ansible.builtin.slurp:
+        src: /etc/ssh/sshd_config
+      register: sshd_config_raw
+
+    - name: Set sshd_config content fact
+      ansible.builtin.set_fact:
+        sshd_config: "{{ sshd_config_raw.content | b64decode }}"
+
+    - name: Verify PermitRootLogin is no
+      ansible.builtin.assert:
+        that:
+          - "'PermitRootLogin no' in sshd_config"
+        fail_msg: "PermitRootLogin should be 'no'"
+
+    - name: Verify PasswordAuthentication is no
+      ansible.builtin.assert:
+        that:
+          - "'PasswordAuthentication no' in sshd_config"
+        fail_msg: "PasswordAuthentication should be 'no'"
+
+    - name: Verify X11Forwarding is no
+      ansible.builtin.assert:
+        that:
+          - "'X11Forwarding no' in sshd_config"
+        fail_msg: "X11Forwarding should be 'no'"
+
+    - name: Verify AllowTcpForwarding is no
+      ansible.builtin.assert:
+        that:
+          - "'AllowTcpForwarding no' in sshd_config"
+        fail_msg: "AllowTcpForwarding should be 'no'"
+
+    - name: Verify AllowAgentForwarding is no
+      ansible.builtin.assert:
+        that:
+          - "'AllowAgentForwarding no' in sshd_config"
+        fail_msg: "AllowAgentForwarding should be 'no'"
+
+    - name: Verify strong ciphers are configured
+      ansible.builtin.assert:
+        that:
+          - "'Ciphers chacha20-poly1305@openssh.com' in sshd_config"
+        fail_msg: "Expected strong ciphers to be configured"
+
+    - name: Verify LogLevel is VERBOSE
+      ansible.builtin.assert:
+        that:
+          - "'LogLevel VERBOSE' in sshd_config"
+        fail_msg: "LogLevel should be VERBOSE"
+
+    - name: Verify MaxAuthTries is 4
+      ansible.builtin.assert:
+        that:
+          - "'MaxAuthTries 4' in sshd_config"
+        fail_msg: "MaxAuthTries should be 4"
+
+    - name: Verify UseDNS is no
+      ansible.builtin.assert:
+        that:
+          - "'UseDNS no' in sshd_config"
+        fail_msg: "UseDNS should be 'no'"
+
+    - name: Verify AddressFamily is any
+      ansible.builtin.assert:
+        that:
+          - "'AddressFamily any' in sshd_config"
+        fail_msg: "AddressFamily should be 'any'"
+
+    - name: Verify sshd_config file permissions
+      ansible.builtin.stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_stat
+
+    - name: Assert sshd_config permissions are 0600
+      ansible.builtin.assert:
+        that:
+          - sshd_stat.stat.mode == '0600'
+          - sshd_stat.stat.pw_name == 'root'
+          - sshd_stat.stat.gr_name == 'root'
+        fail_msg: "sshd_config should be owned by root:root with mode 0600"
+
+    # --- Live daemon checks ---
+    - name: Verify sshd service is running
+      ansible.builtin.systemd:
+        name: ssh
+      register: sshd_service
+
+    - name: Assert sshd is active
+      ansible.builtin.assert:
+        that:
+          - sshd_service.status.ActiveState == 'active'
+        fail_msg: "sshd should be running after converge"
+
+    - name: Query live sshd settings with sshd -T
+      ansible.builtin.command: sshd -T
+      changed_when: false
+      register: sshd_live
+
+    - name: Set live config fact
+      ansible.builtin.set_fact:
+        sshd_live_config: "{{ sshd_live.stdout }}"
+
+    - name: Verify live sshd has root login disabled
+      ansible.builtin.assert:
+        that:
+          - "'permitrootlogin no' in sshd_live_config"
+        fail_msg: "Live sshd should have PermitRootLogin no"
+
+    - name: Verify live sshd has password auth disabled
+      ansible.builtin.assert:
+        that:
+          - "'passwordauthentication no' in sshd_live_config"
+        fail_msg: "Live sshd should have PasswordAuthentication no"
+
+    - name: Verify live sshd has X11 forwarding disabled
+      ansible.builtin.assert:
+        that:
+          - "'x11forwarding no' in sshd_live_config"
+        fail_msg: "Live sshd should have X11Forwarding no"
+
+    - name: Verify live sshd has TCP forwarding disabled
+      ansible.builtin.assert:
+        that:
+          - "'allowtcpforwarding no' in sshd_live_config"
+        fail_msg: "Live sshd should have AllowTcpForwarding no"
+
+    - name: Verify live sshd has agent forwarding disabled
+      ansible.builtin.assert:
+        that:
+          - "'allowagentforwarding no' in sshd_live_config"
+        fail_msg: "Live sshd should have AllowAgentForwarding no"
+
+    - name: Verify live sshd loglevel is VERBOSE
+      ansible.builtin.assert:
+        that:
+          - "'loglevel VERBOSE' in sshd_live_config"
+        fail_msg: "Live sshd should have LogLevel VERBOSE"
+
+    - name: Verify live sshd maxauthtries is 4
+      ansible.builtin.assert:
+        that:
+          - "'maxauthtries 4' in sshd_live_config"
+        fail_msg: "Live sshd should have MaxAuthTries 4"

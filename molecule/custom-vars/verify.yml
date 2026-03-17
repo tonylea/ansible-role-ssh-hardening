@@ -1,0 +1,132 @@
+---
+- name: Verify custom variables
+  hosts: all
+  become: true
+  tasks:
+    - name: Read sshd_config
+      ansible.builtin.slurp:
+        src: /etc/ssh/sshd_config
+      register: sshd_config_raw
+
+    - name: Set sshd_config content fact
+      ansible.builtin.set_fact:
+        sshd_config: "{{ sshd_config_raw.content | b64decode }}"
+
+    - name: Verify custom port
+      ansible.builtin.assert:
+        that:
+          - "'Port 2222' in sshd_config"
+        fail_msg: "Port should be 2222"
+
+    - name: Verify PermitRootLogin is prohibit-password
+      ansible.builtin.assert:
+        that:
+          - "'PermitRootLogin prohibit-password' in sshd_config"
+        fail_msg: "PermitRootLogin should be 'prohibit-password'"
+
+    - name: Verify MaxAuthTries is 2
+      ansible.builtin.assert:
+        that:
+          - "'MaxAuthTries 2' in sshd_config"
+        fail_msg: "MaxAuthTries should be 2"
+
+    - name: Verify MaxSessions is 5
+      ansible.builtin.assert:
+        that:
+          - "'MaxSessions 5' in sshd_config"
+        fail_msg: "MaxSessions should be 5"
+
+    - name: Verify LogLevel is INFO
+      ansible.builtin.assert:
+        that:
+          - "'LogLevel INFO' in sshd_config"
+        fail_msg: "LogLevel should be INFO"
+
+    - name: Verify ClientAliveInterval is 600
+      ansible.builtin.assert:
+        that:
+          - "'ClientAliveInterval 600' in sshd_config"
+        fail_msg: "ClientAliveInterval should be 600"
+
+    - name: Verify ClientAliveCountMax is 2
+      ansible.builtin.assert:
+        that:
+          - "'ClientAliveCountMax 2' in sshd_config"
+        fail_msg: "ClientAliveCountMax should be 2"
+
+    - name: Verify X11Forwarding is yes
+      ansible.builtin.assert:
+        that:
+          - "'X11Forwarding yes' in sshd_config"
+        fail_msg: "X11Forwarding should be 'yes'"
+
+    - name: Verify AllowUsers is set
+      ansible.builtin.assert:
+        that:
+          - "'AllowUsers testuser' in sshd_config"
+        fail_msg: "AllowUsers should contain 'testuser'"
+
+    - name: Verify AddressFamily is inet
+      ansible.builtin.assert:
+        that:
+          - "'AddressFamily inet' in sshd_config"
+        fail_msg: "AddressFamily should be 'inet'"
+
+    - name: Verify only IPv4 listen address
+      ansible.builtin.assert:
+        that:
+          - "'ListenAddress 0.0.0.0' in sshd_config"
+          - "'ListenAddress ::' not in sshd_config"
+        fail_msg: "Should only listen on IPv4"
+
+    - name: Verify sshd_config file permissions
+      ansible.builtin.stat:
+        path: /etc/ssh/sshd_config
+      register: sshd_stat
+
+    - name: Assert sshd_config permissions are 0600
+      ansible.builtin.assert:
+        that:
+          - sshd_stat.stat.mode == '0600'
+        fail_msg: "sshd_config should have mode 0600"
+
+    # --- Live daemon checks with custom values ---
+    - name: Query live sshd settings
+      ansible.builtin.command: sshd -T
+      changed_when: false
+      register: sshd_live
+
+    - name: Set live config fact
+      ansible.builtin.set_fact:
+        sshd_live_config: "{{ sshd_live.stdout }}"
+
+    - name: Verify live sshd port is 2222
+      ansible.builtin.assert:
+        that:
+          - "'port 2222' in sshd_live_config"
+        fail_msg: "Live sshd should have port 2222"
+
+    - name: Verify live sshd root login is prohibit-password
+      ansible.builtin.assert:
+        that:
+          # sshd -T outputs the legacy alias "without-password" for "prohibit-password"
+          - "'permitrootlogin without-password' in sshd_live_config or 'permitrootlogin prohibit-password' in sshd_live_config"
+        fail_msg: "Live sshd should have PermitRootLogin prohibit-password"
+
+    - name: Verify live sshd maxauthtries is 2
+      ansible.builtin.assert:
+        that:
+          - "'maxauthtries 2' in sshd_live_config"
+        fail_msg: "Live sshd should have MaxAuthTries 2"
+
+    - name: Verify live sshd X11 forwarding is enabled
+      ansible.builtin.assert:
+        that:
+          - "'x11forwarding yes' in sshd_live_config"
+        fail_msg: "Live sshd should have X11Forwarding yes"
+
+    - name: Verify live sshd loglevel is INFO
+      ansible.builtin.assert:
+        that:
+          - "'loglevel INFO' in sshd_live_config"
+        fail_msg: "Live sshd should have LogLevel INFO"

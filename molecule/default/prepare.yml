@@ -1,0 +1,16 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install Python, sudo, and openssh-server
+      ansible.builtin.raw: apt-get update && apt-get install -y python3 sudo openssh-server
+
+    - name: Generate SSH host keys
+      ansible.builtin.raw: ssh-keygen -A
+
+    - name: Ensure sshd runtime directory exists
+      ansible.builtin.raw: mkdir -p /run/sshd
+
+    - name: Enable and start sshd
+      ansible.builtin.raw: systemctl enable ssh && systemctl start ssh
