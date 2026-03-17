@@ -6,3 +6,4 @@ ignores:
   - .github/**
   - .ansible/**
   - node_modules/**
+  - CHANGELOG.md
