@@ -9,7 +9,7 @@
       register: sshd
       changed_when: false
 
-    - name: sshd allows only key logins, and never as root
+    - name: The SSH server allows only key logins, and never as root
       ansible.builtin.assert:
         that: item in sshd.stdout_lines
       loop:
