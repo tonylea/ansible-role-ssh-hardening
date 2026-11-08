@@ -1,0 +1,13 @@
+galaxy_info:
+  namespace: tonylea
+  role_name: ssh_hardening
+  author: Tony Lea
+  description: Allows SSH logins only with keys, and never as root
+  license: MIT
+  min_ansible_version: "2.20"
+  platforms:
+    - name: Debian
+      versions:
+        - trixie
+
+dependencies: []

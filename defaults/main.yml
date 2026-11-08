@@ -1,0 +1,2 @@
+# The user who must keep key access. The role stops if they have no authorized key.
+ssh_hardening_login_user: "{{ ansible_user }}"

@@ -1,0 +1,35 @@
+- name: Look up the login user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ ssh_hardening_login_user }}"
+
+- name: Check the login user's authorized keys
+  ansible.builtin.stat:
+    path: "{{ ansible_facts.getent_passwd[ssh_hardening_login_user][4] }}/.ssh/authorized_keys"
+  register: ssh_hardening_authorized_keys
+
+- name: Refuse to turn off passwords for a user with no key
+  ansible.builtin.assert:
+    that:
+      - ssh_hardening_authorized_keys.stat.exists
+      - ssh_hardening_authorized_keys.stat.size > 0
+    fail_msg: "{{ ssh_hardening_login_user }} has no authorized SSH key, so hardening SSH would lock them out."
+    quiet: true
+
+# sshd uses the first value it reads, and reads drop-ins in name order, so 00- overrides
+# anything else, such as cloud-init's 50-cloud-init.conf.
+- name: Allow only key logins, and never as root
+  ansible.builtin.copy:
+    dest: /etc/ssh/sshd_config.d/00-hardening.conf
+    content: |
+      PubkeyAuthentication yes
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitEmptyPasswords no
+      PermitRootLogin no
+      UsePAM yes
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Reload sshd
