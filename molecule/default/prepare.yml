@@ -1,0 +1,62 @@
+# Set the machine up as Raspberry Pi Imager leaves a Pi: sshd running, a login user with a key, and
+# cloud-init's drop-in. Password logins are switched on in that drop-in, so the test proves the role wins.
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Install the SSH server and client
+      ansible.builtin.apt:
+        name: [openssh-server, openssh-client]
+        update_cache: true
+
+    - name: Start sshd
+      ansible.builtin.systemd_service:
+        name: ssh
+        state: started
+
+    - name: Create a key for the tests to log in with
+      ansible.builtin.command: ssh-keygen -t ed25519 -N "" -f /root/test_key
+      args:
+        creates: /root/test_key
+
+    - name: Create the login user
+      ansible.builtin.user:
+        name: deploy
+        shell: /bin/bash
+
+    - name: Create a user with no key
+      ansible.builtin.user:
+        name: nokeys
+        shell: /bin/bash
+
+    - name: Read the test key
+      ansible.builtin.slurp:
+        src: /root/test_key.pub
+      register: test_key
+
+    - name: Create .ssh for the login user and root
+      ansible.builtin.file:
+        path: "{{ item }}/.ssh"
+        state: directory
+        mode: "0700"
+        owner: "{{ item | basename if item != '/root' else 'root' }}"
+      loop: [/home/deploy, /root]
+
+    - name: Authorise the test key for the login user and root
+      ansible.builtin.copy:
+        dest: "{{ item }}/.ssh/authorized_keys"
+        content: "{{ test_key.content | b64decode }}"
+        mode: "0600"
+        owner: "{{ item | basename if item != '/root' else 'root' }}"
+      loop: [/home/deploy, /root]
+
+    - name: Switch password logins on, as cloud-init can
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/50-cloud-init.conf
+        content: |
+          PasswordAuthentication yes
+        mode: "0600"
+
+    - name: Reload sshd with cloud-init's setting
+      ansible.builtin.systemd_service:
+        name: ssh
+        state: reloaded

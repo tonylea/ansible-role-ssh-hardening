@@ -1,0 +1,66 @@
+- name: Verify
+  hosts: all
+  become: true
+  vars:
+    ssh_options: -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+  tasks:
+    - name: Read the settings sshd is actually using
+      ansible.builtin.command: sshd -T
+      register: sshd
+      changed_when: false
+
+    - name: sshd allows only key logins, and never as root
+      ansible.builtin.assert:
+        that: item in sshd.stdout_lines
+      loop:
+        - pubkeyauthentication yes
+        - passwordauthentication no
+        - kbdinteractiveauthentication no
+        - permitemptypasswords no
+        - permitrootlogin no
+        - usepam yes
+
+    - name: Ask sshd which login methods it offers
+      ansible.builtin.command: ssh {{ ssh_options }} -o PreferredAuthentications=none deploy@localhost true
+      register: offered
+      changed_when: false
+      failed_when: false
+
+    - name: Only key logins are offered, despite cloud-init switching passwords on
+      ansible.builtin.assert:
+        that: offered.stderr is search('Permission denied [(]publickey[)][.]')
+        fail_msg: "sshd answered: {{ offered.stderr }}"
+
+    - name: Log in as the login user with the key
+      ansible.builtin.command: ssh {{ ssh_options }} -i /root/test_key deploy@localhost true
+      changed_when: false
+
+    - name: Try to log in as root with the same key
+      ansible.builtin.command: ssh {{ ssh_options }} -i /root/test_key root@localhost true
+      register: root_login
+      changed_when: false
+      failed_when: false
+
+    - name: Root can't log in, even with a valid key
+      ansible.builtin.assert:
+        that: root_login.rc != 0
+
+    - name: Run the role for a user with no key
+      block:
+        - name: Apply the role for a user with no key
+          ansible.builtin.include_role:
+            name: tonylea.ssh_hardening
+          vars:
+            ssh_hardening_login_user: nokeys
+
+        - name: Record that the role carried on
+          ansible.builtin.set_fact:
+            guard_stopped: false
+      rescue:
+        - name: Record that the role stopped
+          ansible.builtin.set_fact:
+            guard_stopped: true
+
+    - name: The role refuses to lock a user out
+      ansible.builtin.assert:
+        that: guard_stopped
