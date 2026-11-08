@@ -1,0 +1,38 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "dictionaries": [
+    "softwareTerms"
+  ],
+  "ignorePaths": [
+    ".git/**",
+    ".husky/**",
+    "node_modules/**",
+    "CHANGELOG.md",
+    "package-lock.json"
+  ],
+  "words": [
+    "cgroupns",
+    "commitlint",
+    "getent",
+    "homelab",
+    "kbdinteractiveauthentication",
+    "keygen",
+    "nokeys",
+    "noreply",
+    "passwordauthentication",
+    "permitemptypasswords",
+    "permitrootlogin",
+    "pubkeyauthentication",
+    "publickey",
+    "secretlint",
+    "SIGRTMIN",
+    "sshd",
+    "sysv",
+    "tmpfs",
+    "tonylea",
+    "trixie",
+    "usepam",
+    "vars"
+  ]
+}
